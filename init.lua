@@ -102,7 +102,7 @@ vim.g.have_nerd_font = false
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.o.relativenumber = true
+vim.o.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
@@ -120,6 +120,11 @@ end)
 
 -- Enable break indent
 vim.o.breakindent = true
+vim.o.tabstop = 4
+vim.o.shiftwidth = 4
+vim.o.smarttab = true
+vim.o.autoindent = true
+vim.o.autowrite = true
 
 -- Save undo history
 vim.o.undofile = true
@@ -357,7 +362,22 @@ require('lazy').setup({
   -- you do for a plugin at the top level, you can do for a dependency.
   --
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
-
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    config = true,
+  },
+  {
+    'stevearc/oil.nvim',
+    ---@module 'oil'
+    ---@type oil.SetupOpts
+    opts = {},
+    -- Optional dependencies
+    dependencies = { { 'echasnovski/mini.icons', opts = {} } },
+    -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if you prefer nvim-web-devicons
+    -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
+    lazy = false,
+  },
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -881,20 +901,20 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+    'https://github.com/sainnhe/gruvbox-material',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('tokyonight').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
-        },
-      }
+      --  ---@diagnostic disable-next-line: missing-fields
+      --  require('tokyonight').setup {
+      --    styles = {
+      --     comments = { italic = false }, -- Disable italics in comments
+      --    },
+      --  }
 
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'gruvbox-material'
     end,
   },
 
@@ -1014,3 +1034,81 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+--
+--Running Files of Python and C/C++
+--
+vim.keymap.set('n', '<leader>rp', function()
+  local filepath = vim.api.nvim_buf_get_name(0)
+  if filepath:sub(-3) == '.py' then
+    vim.cmd('split | terminal python3 ' .. vim.fn.shellescape(filepath))
+  else
+    print 'Run Python : Error ( not a python file ).'
+  end
+end, { desc = '[R]un current [P]ython file' })
+
+vim.keymap.set('n', '<leader>rc', function()
+  local filepath = vim.api.nvim_buf_get_name(0)
+  if filepath:sub(-4) == '.cpp' or filepath:sub(-2) == '.c' then
+    vim.cmd('split | terminal g++ ' .. vim.fn.shellescape(filepath) .. '&& ./a.out')
+  else
+    print 'Run C/C++ : Error ( not a C/C++ file ).'
+  end
+end, { desc = '[R]un current [C/C++] file' })
+
+-- FLoating Terminal
+--
+local state = {
+  floating = {
+    buf = -1,
+    win = -1,
+  },
+}
+
+local function OpenFloatingWindow(opts)
+  opts = opts or {}
+
+  -- Default width and height
+  local width = math.floor(opts.width or vim.o.columns * 0.8)
+  local height = math.floor(opts.height or vim.o.lines * 0.8)
+
+  -- Center the window
+  local row = math.floor((vim.o.lines - height) / 2)
+  local col = math.floor((vim.o.columns - width) / 2)
+
+  -- Create a new buffer (not listed, scratch)
+  if vim.api.nvim_buf_is_valid(opts.buf) then
+    buf = opts.buf
+  else
+    buf = vim.api.nvim_create_buf(false, true)
+  end
+
+  -- Window options
+  local win_opts = {
+    style = 'minimal',
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = row,
+    col = col,
+    border = 'rounded', -- You can use "single", "double", "shadow", etc.
+  }
+
+  -- Open the floating window
+  local win = vim.api.nvim_open_win(buf, true, win_opts)
+
+  return { buf = buf, win = win }
+end
+
+local toggle_terminal = function()
+  if not vim.api.nvim_win_is_valid(state.floating.win) then
+    state.floating = OpenFloatingWindow { buf = state.floating.buf }
+    if vim.bo[state.floating.buf].buftype ~= 'terminal' then
+      vim.cmd.terminal()
+    end
+  else
+    vim.api.nvim_win_hide(state.floating.win)
+  end
+end
+
+vim.api.nvim_create_user_command('Floaterminal', toggle_terminal, {})
+vim.keymap.set({ 'n', 't' }, '<space>tt', toggle_terminal)
