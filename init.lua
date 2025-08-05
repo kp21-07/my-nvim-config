@@ -120,11 +120,12 @@ end)
 
 -- Enable break indent
 vim.o.breakindent = true
-vim.o.tabstop = 4
-vim.o.shiftwidth = 4
+vim.o.tabstop = 2
+vim.o.shiftwidth = 2
 vim.o.smarttab = true
 vim.o.autoindent = true
 vim.o.autowrite = true
+vim.o.wrap = true
 
 -- Save undo history
 vim.o.undofile = true
@@ -222,6 +223,11 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function()
     vim.hl.on_yank()
   end,
+})
+
+vim.api.nvim_create_autocmd({ 'CursorHold' }, {
+  pattern = '*',
+  command = 'update',
 })
 
 -- [[ Install `lazy.nvim` plugin manager ]]
@@ -718,6 +724,12 @@ require('lazy').setup({
             },
           },
         },
+        pyright = {}, -- for Python
+        clangd = {}, -- for C and C++
+        ts_ls = {}, -- for JS and TC
+        html = {}, -- for HTML
+        cssls = {}, -- for CSS
+        rust_analyzer = {}, -- Rust
       }
 
       -- Ensure the servers and tools above are installed
@@ -819,12 +831,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
         opts = {},
       },
@@ -896,14 +908,43 @@ require('lazy').setup({
     },
   },
 
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('lualine').setup {
+        options = {
+          theme = 'gruvbox-material', -- 👈 the theme that matches your Neovim colorscheme
+          icons_enabled = true,
+          section_separators = { left = '', right = '' },
+          component_separators = { left = '', right = '' },
+        },
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff' },
+          lualine_c = { 'filename' },
+          lualine_x = { 'encoding', 'fileformat', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' },
+        },
+      }
+    end,
+  },
+
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'https://github.com/sainnhe/gruvbox-material',
+    'sainnhe/gruvbox-material',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     config = function()
+      vim.g.gruvbox_material_background = 'medium' -- or 'hard', 'soft'
+      vim.g.gruvbox_material_foreground = 'material'
+      vim.g.gruvbox_material_enable_italic = true
+      --vim.g.gruvbox_material_enable_bold = true
+      vim.g.gruvbox_material_ui_contrast = 'high'
+      vim.g.gruvbox_material_better_performance = 1 -- recommended for speed
       --  ---@diagnostic disable-next-line: missing-fields
       --  require('tokyonight').setup {
       --    styles = {
@@ -1055,6 +1096,15 @@ vim.keymap.set('n', '<leader>rc', function()
   end
 end, { desc = '[R]un current [C/C++] file' })
 
+vim.keymap.set('n', '<leader>ro', function()
+  local filepath = vim.api.nvim_buf_get_name(0)
+  if filepath:sub(-5) == '.odin' then
+    vim.cmd 'split | terminal odin run .'
+  else
+    print 'Run Odin : Error ( not an Odin file ).'
+  end
+end, { desc = '[R]un current [O]din file' })
+
 -- FLoating Terminal
 --
 local state = {
@@ -1112,3 +1162,21 @@ end
 
 vim.api.nvim_create_user_command('Floaterminal', toggle_terminal, {})
 vim.keymap.set({ 'n', 't' }, '<space>tt', toggle_terminal)
+
+-- Toggle diagnostic virtual text (inline errors)
+vim.keymap.set('n', '<leader>td', function()
+  local current = vim.diagnostic.config().virtual_text
+  vim.diagnostic.config {
+    virtual_text = not current,
+    underline = not current,
+    signs = not current,
+  }
+end, { desc = '[T]oggle [D]iagnostics' })
+
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+vim.keymap.set('n', 'K', vim.lsp.buf.hover, { desc = 'LSP Hover (docs/errors)' })
+
+vim.keymap.set('n', '<leader>e', function()
+  vim.diagnostic.open_float(nil, { focus = false })
+end, { desc = 'Show [E]rror under cursor' })
