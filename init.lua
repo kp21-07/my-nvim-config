@@ -10,12 +10,10 @@ vim.o.number = true
 vim.o.relativenumber = true
 vim.o.mouse = 'a'
 vim.o.showmode = false
-vim.schedule(function()
-  vim.o.clipboard = 'unnamedplus'
-end)
+vim.o.clipboard = 'unnamedplus'
 vim.o.breakindent = true
 vim.o.tabstop = 2
-vim.o.shiftwidth = 2
+vim.o.shiftwidth = 4
 vim.o.smarttab = true
 vim.o.autoindent = true
 vim.o.autowrite = true
@@ -56,10 +54,10 @@ vim.api.nvim_create_autocmd({ 'CursorHold' }, {
 })
 
 -- [[ Plugin manager ]]
-local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
+local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
-  local out = vim.fn.system({ 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath })
+  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
   if vim.v.shell_error ~= 0 then
     error('Error cloning lazy.nvim:\n' .. out)
   end
@@ -67,8 +65,8 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- [[ Load plugins ]]
-require('lazy').setup({ { import = 'plugins' } })
+require('lazy').setup { { import = 'plugins' } }
 
 -- [[ Custom Commands and Mappings ]]
-require('config.keymaps')
-require('config.floating_terminal')
+require 'config.keymaps'
+require 'config.floating_terminal'

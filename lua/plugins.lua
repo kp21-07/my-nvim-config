@@ -138,45 +138,45 @@ return {
       },
     },
   },
-  { -- Autocompletion
-    'saghen/blink.cmp',
-    event = 'VimEnter',
-    version = '1.*',
-    dependencies = {
-      {
-        'L3MON4D3/LuaSnip',
-        version = '2.*',
-        build = function()
-          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
-            return nil
-          end
-          return 'make install_jsregexp'
-        end,
-        dependencies = {
-          {
-            'rafamadriz/friendly-snippets',
-            config = function()
-              require('luasnip.loaders.from_vscode').lazy_load()
-            end,
-          },
-        },
-        opts = {},
-      },
-      'folke/lazydev.nvim',
-    },
-    opts = {
-      keymap = { preset = 'default' },
-      appearance = { nerd_font_variant = 'mono' },
-      completion = { documentation = { auto_show = false, auto_show_delay_ms = 500 } },
-      sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
-        providers = { lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 } },
-      },
-      snippets = { preset = 'luasnip' },
-      fuzzy = { implementation = 'lua' },
-      signature = { enabled = true },
-    },
-  },
+  -- { -- Autocompletion
+  --   'saghen/blink.cmp',
+  --   event = 'VimEnter',
+  --   version = '1.*',
+  --   dependencies = {
+  --     {
+  --       'L3MON4D3/LuaSnip',
+  --       version = '2.*',
+  --       build = function()
+  --         if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
+  --           return nil
+  --         end
+  --         return 'make install_jsregexp'
+  --       end,
+  --       dependencies = {
+  --         {
+  --           'rafamadriz/friendly-snippets',
+  --           config = function()
+  --             require('luasnip.loaders.from_vscode').lazy_load()
+  --           end,
+  --         },
+  --       },
+  --       opts = {},
+  --     },
+  --     'folke/lazydev.nvim',
+  --   },
+  --   opts = {
+  --     keymap = { preset = 'default' },
+  --     appearance = { nerd_font_variant = 'mono' },
+  --     completion = { documentation = { auto_show = false, auto_show_delay_ms = 500 } },
+  --     sources = {
+  --       default = { 'lsp', 'path', 'snippets', 'lazydev' },
+  --       providers = { lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 } },
+  --     },
+  --     snippets = { preset = 'luasnip' },
+  --     fuzzy = { implementation = 'lua' },
+  --     signature = { enabled = true },
+  --   },
+  -- },
   {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -261,7 +261,7 @@ return {
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'ocaml', 'ocaml_interface' },
       auto_install = true,
       highlight = { enable = true, additional_vim_regex_highlighting = { 'ruby' } },
       indent = { enable = true, disable = { 'ruby' } },
