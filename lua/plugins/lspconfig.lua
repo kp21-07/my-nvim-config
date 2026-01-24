@@ -4,11 +4,15 @@ return {
     'williamboman/mason.nvim',
     'williamboman/mason-lspconfig.nvim',
     'WhoIsSethDaniel/mason-tool-installer.nvim',
-    'saghen/blink.cmp', -- since you are using blink for capabilities
     'nvim-telescope/telescope.nvim',
   },
   config = function()
-    local capabilities = require('blink.cmp').get_lsp_capabilities()
+    require('mason').setup()
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    local has_blink, blink = pcall(require, 'blink.cmp')
+    if has_blink then
+      capabilities = blink.get_lsp_capabilities()
+    end
 
     local function client_supports_method(client, method, bufnr)
       if vim.fn.has 'nvim-0.11' == 1 then
@@ -57,6 +61,9 @@ return {
               vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
             end,
           })
+        end
+        if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentSymbol, event.buf) then
+          require('nvim-navic').attach(client, event.buf)
         end
         if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
           map('<leader>th', function()
@@ -119,9 +126,5 @@ return {
       },
     }
 
-    -- Manually configure ocamllsp since it was installed with opam
-    -- require('lspconfig').ocamllsp.setup {
-    --   capabilities = capabilities,
-    -- }
   end,
 }

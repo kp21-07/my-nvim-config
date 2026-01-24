@@ -1,5 +1,10 @@
 return {
-  'NMAC427/guess-indent.nvim',
+  {
+    'NMAC427/guess-indent.nvim',
+    config = function()
+      require('guess-indent').setup {}
+    end,
+  },
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
@@ -96,19 +101,7 @@ return {
     end,
   },
   { 'folke/lazydev.nvim', ft = 'lua', opts = { library = { { path = '${3rd}/luv/library', words = { 'vim%.uv' } } } } },
-  {
-    'neovim/nvim-lspconfig',
-    dependencies = {
-      { 'mason-org/mason.nvim', opts = {} },
-      'mason-org/mason-lspconfig.nvim',
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
-      { 'j-hui/fidget.nvim', opts = {} },
-      'saghen/blink.cmp',
-    },
-    config = function()
-      require 'plugins.lspconfig'
-    end,
-  },
+  { import = 'plugins.lspconfig' },
   { -- Autoformat
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
@@ -183,7 +176,7 @@ return {
     config = function()
       require('lualine').setup {
         options = {
-          theme = 'gruvbox-material',
+          theme = 'bamboo',
           icons_enabled = true,
           section_separators = { left = '', right = '' },
           component_separators = { left = '', right = '' },
@@ -206,6 +199,14 @@ return {
               update_in_insert = true,
               diagnostics_mode = 'lsp-only',
             },
+            {
+              function()
+                return require('nvim-navic').get_location()
+              end,
+              cond = function()
+                return require('nvim-navic').is_available()
+              end,
+            },
           },
           lualine_x = {
             {
@@ -215,15 +216,32 @@ return {
               section_separators = { left = '', right = '' },
               component_separators = { left = '', right = '' },
             },
+            {
+              function()
+                local msg = 'No Active Lsp'
+                local clients = vim.lsp.get_clients { bufnr = 0 }
+                if next(clients) == nil then
+                  return msg
+                end
+                
+                local client_names = {}
+                for _, client in ipairs(clients) do
+                  table.insert(client_names, client.name)
+                end
+                return 'LSP: ' .. table.concat(client_names, ', ')
+              end,
+              icon = '',
+            },
+            {
+              function()
+                local shiftwidth = vim.api.nvim_buf_get_option(0, 'shiftwidth')
+                return 'Spaces: ' .. shiftwidth
+              end,
+            },
             'encoding',
             'fileformat',
             'searchcount',
-            {
-              'progress',
-              section_separators = { left = '', right = '' },
-              component_separators = { left = '', right = '' },
-            },
-            'location',
+            -- 'progress',
           },
           lualine_y = { 'progress' },
           lualine_z = { 'location' },
@@ -232,15 +250,14 @@ return {
     end,
   },
   {
-    'sainnhe/gruvbox-material',
+    'ribru17/bamboo.nvim',
+    lazy = false,
     priority = 1000,
     config = function()
-      vim.g.gruvbox_material_background = 'medium'
-      vim.g.gruvbox_material_foreground = 'material'
-      vim.g.gruvbox_material_enable_italic = true
-      vim.g.gruvbox_material_ui_contrast = 'high'
-      vim.g.gruvbox_material_better_performance = 1
-      vim.cmd.colorscheme 'gruvbox-material'
+      require('bamboo').setup {
+        -- optional configuration here
+      }
+      require('bamboo').load()
     end,
   },
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
