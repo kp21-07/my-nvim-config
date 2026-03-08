@@ -110,6 +110,7 @@ return {
       html = {},
       cssls = {},
       rust_analyzer = {},
+      ols = {},
     }
 
     local ensure_installed = vim.tbl_keys(servers or {})
@@ -125,6 +126,5 @@ return {
         end,
       },
     }
-
   end,
 }

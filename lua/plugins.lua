@@ -131,45 +131,48 @@ return {
       },
     },
   },
-  -- { -- Autocompletion
-  --   'saghen/blink.cmp',
-  --   event = 'VimEnter',
-  --   version = '1.*',
-  --   dependencies = {
-  --     {
-  --       'L3MON4D3/LuaSnip',
-  --       version = '2.*',
-  --       build = function()
-  --         if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
-  --           return nil
-  --         end
-  --         return 'make install_jsregexp'
-  --       end,
-  --       dependencies = {
-  --         {
-  --           'rafamadriz/friendly-snippets',
-  --           config = function()
-  --             require('luasnip.loaders.from_vscode').lazy_load()
-  --           end,
-  --         },
-  --       },
-  --       opts = {},
-  --     },
-  --     'folke/lazydev.nvim',
-  --   },
-  --   opts = {
-  --     keymap = { preset = 'default' },
-  --     appearance = { nerd_font_variant = 'mono' },
-  --     completion = { documentation = { auto_show = false, auto_show_delay_ms = 500 } },
-  --     sources = {
-  --       default = { 'lsp', 'path', 'snippets', 'lazydev' },
-  --       providers = { lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 } },
-  --     },
-  --     snippets = { preset = 'luasnip' },
-  --     fuzzy = { implementation = 'lua' },
-  --     signature = { enabled = true },
-  --   },
-  -- },
+  { -- Autocompletion
+    'saghen/blink.cmp',
+    event = 'VimEnter',
+    version = '1.*',
+    dependencies = {
+      {
+        'L3MON4D3/LuaSnip',
+        version = '2.*',
+        build = function()
+          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
+            return nil
+          end
+          return 'make install_jsregexp'
+        end,
+        dependencies = {
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
+        },
+        opts = {},
+      },
+      'folke/lazydev.nvim',
+    },
+    opts = {
+      keymap = {
+        preset = 'default',
+        ['<CR>'] = { 'select_and_accept', 'fallback' },
+      },
+      appearance = { nerd_font_variant = 'mono' },
+      completion = { documentation = { auto_show = false, auto_show_delay_ms = 500 } },
+      sources = {
+        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        providers = { lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 } },
+      },
+      snippets = { preset = 'luasnip' },
+      fuzzy = { implementation = 'lua' },
+      signature = { enabled = true },
+    },
+  },
   {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -223,7 +226,7 @@ return {
                 if next(clients) == nil then
                   return msg
                 end
-                
+
                 local client_names = {}
                 for _, client in ipairs(clients) do
                   table.insert(client_names, client.name)
@@ -255,7 +258,15 @@ return {
     priority = 1000,
     config = function()
       require('bamboo').setup {
-        -- optional configuration here
+        dim_inactive = true,
+        diagnostics = {
+          background = false, -- Removes background color for diagnostic virtual text
+          undercurl = true, -- Uses a clean undercurl instead of a harsh underline
+        },
+        highlights = {
+          ['@comment'] = { fg = '#a0ad8d', fmt = 'italic' },
+          ['Comment'] = { fg = '#a0ad8d', fmt = 'italic' },
+        },
       }
       require('bamboo').load()
     end,
@@ -265,7 +276,17 @@ return {
     'echasnovski/mini.nvim',
     config = function()
       require('mini.ai').setup { n_lines = 500 }
-      require('mini.surround').setup()
+      require('mini.surround').setup {
+        mappings = {
+          add = 'gza', -- Add surrounding
+          delete = 'gzd', -- Delete surrounding
+          find = 'gzf', -- Find surrounding (to the right)
+          find_left = 'gzF', -- Find surrounding (to the left)
+          highlight = 'gzh', -- Highlight surrounding
+          replace = 'gzr', -- Replace surrounding
+          update_n_lines = 'gzn', -- Update `n_lines`
+        },
+      }
       local statusline = require 'mini.statusline'
       statusline.setup { use_icons = vim.g.have_nerd_font }
       statusline.section_location = function()

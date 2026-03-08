@@ -26,32 +26,6 @@ vim.keymap.set('n', '<leader>sn', function()
   builtin.find_files({ cwd = vim.fn.stdpath('config') })
 end, { desc = '[S]earch [N]eovim files' })
 
--- Running Files
-vim.keymap.set('n', '<leader>rp', function()
-  local filepath = vim.api.nvim_buf_get_name(0)
-  if filepath:sub(-3) == '.py' then
-    vim.cmd('split | terminal python3 ' .. vim.fn.shellescape(filepath))
-  else
-    print('Run Python : Error ( not a python file ).')
-  end
-end, { desc = '[R]un current [P]ython file' })
-vim.keymap.set('n', '<leader>rc', function()
-  local filepath = vim.api.nvim_buf_get_name(0)
-  if filepath:sub(-4) == '.cpp' or filepath:sub(-2) == '.c' then
-    vim.cmd('split | terminal g++ ' .. vim.fn.shellescape(filepath) .. '&& ./a.out')
-  else
-    print('Run C/C++ : Error ( not a C/C++ file ).')
-  end
-end, { desc = '[R]un current [C/C++] file' })
-vim.keymap.set('n', '<leader>ro', function()
-  local filepath = vim.api.nvim_buf_get_name(0)
-  if filepath:sub(-5) == '.odin' then
-    vim.cmd('split | terminal odin run .')
-  else
-    print('Run Odin : Error ( not an Odin file ).')
-  end
-end, { desc = '[R]un current [O]din file' })
-
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>td', function()
   local current = vim.diagnostic.config().virtual_text
@@ -65,3 +39,34 @@ vim.keymap.set('n', '<leader>e', function()
   vim.diagnostic.open_float(nil, { focus = false })
 end, { desc = 'Show [E]rror under cursor' })
 vim.keymap.set('n', 'K', vim.lsp.buf.hover, { desc = 'LSP Hover (docs/errors)' })
+
+-- Move Lines
+vim.keymap.set('n', '<A-j>', '<cmd>m .+1<cr>==', { desc = 'Move Down' })
+vim.keymap.set('n', '<A-k>', '<cmd>m .-2<cr>==', { desc = 'Move Up' })
+vim.keymap.set('i', '<A-j>', '<esc><cmd>m .+1<cr>==gi', { desc = 'Move Down' })
+vim.keymap.set('i', '<A-k>', '<esc><cmd>m .-2<cr>==gi', { desc = 'Move Up' })
+vim.keymap.set('v', '<A-j>', ":m '>+1<cr>gv=gv", { desc = 'Move Down' })
+vim.keymap.set('v', '<A-k>', ":m '<-2<cr>gv=gv", { desc = 'Move Up' })
+
+-- Paste without overriding clipboard
+vim.keymap.set('v', '<leader>p', '"_dP', { desc = 'Paste without overriding clipboard' })
+
+-- Replace selected text
+vim.keymap.set('v', '<leader>r', function()
+  -- Using getregion directly fetches the visually selected area
+  -- without messing with registers or trying to jump back into normal mode
+  local start_pos = vim.fn.getpos('v')
+  local end_pos = vim.fn.getpos('.')
+  local lines = vim.fn.getregion(start_pos, end_pos, { type = vim.fn.mode() })
+  local text = table.concat(lines, '\n')
+
+  local search_pattern = vim.fn.escape(text, '/\\')
+  search_pattern = search_pattern:gsub('\n', '\\n')
+
+  vim.ui.input({ prompt = 'Enter text to replace: ' }, function(input)
+    if input ~= nil then
+      local replace_pattern = vim.fn.escape(input, '/\\&~')
+      vim.cmd(string.format('%%s/\\V%s/%s/gc', search_pattern, replace_pattern))
+    end
+  end)
+end, { desc = 'Replace selected text' })
