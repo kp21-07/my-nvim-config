@@ -13,18 +13,9 @@ return {
     },
   },
   {
-    'echasnovski/mini.icons',
-    opts = {},
+    'nvim-tree/nvim-web-devicons',
     lazy = false,
-    specs = {
-      { 'nvim-tree/nvim-web-devicons', enabled = false, optional = true },
-    },
-    init = function()
-      package.preload['nvim-web-devicons'] = function()
-        require('mini.icons').mock_nvim_web_devicons()
-        return package.loaded['nvim-web-devicons']
-      end
-    end,
+    config = true,
   },
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
@@ -33,7 +24,36 @@ return {
       delay = 0,
       icons = {
         mappings = vim.g.have_nerd_font,
-        keys = {},
+        keys = vim.g.have_nerd_font and {} or {
+          Up = '<Up> ',
+          Down = '<Down> ',
+          Left = '<Left> ',
+          Right = '<Right> ',
+          C = '<C-…> ',
+          M = '<M-…> ',
+          D = '<D-…> ',
+          S = '<S-…> ',
+          CR = '<CR> ',
+          Esc = '<Esc> ',
+          ScrollWheelDown = '<ScrollWheelDown> ',
+          ScrollWheelUp = '<ScrollWheelUp> ',
+          NL = '<NL> ',
+          BS = '<BS> ',
+          Space = '<Space> ',
+          Tab = '<Tab> ',
+          F1 = '<F1>',
+          F2 = '<F2>',
+          F3 = '<F3>',
+          F4 = '<F4>',
+          F5 = '<F5>',
+          F6 = '<F6>',
+          F7 = '<F7>',
+          F8 = '<F8>',
+          F9 = '<F9>',
+          F10 = '<F10>',
+          F11 = '<F11>',
+          F12 = '<F12>',
+        },
       },
       spec = {
         { '<leader>s', group = '[S]earch' },
@@ -50,6 +70,7 @@ return {
   {
     'stevearc/oil.nvim',
     opts = {},
+    dependencies = { { 'echasnovski/mini.icons', opts = {} } },
     lazy = false,
   },
   { -- Fuzzy Finder (files, lsp, etc)
@@ -65,6 +86,7 @@ return {
         end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
+      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
       require('telescope').setup {
@@ -146,6 +168,7 @@ return {
   },
   {
     'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
       require('lualine').setup {
         options = {
@@ -183,17 +206,21 @@ return {
     end,
   },
   {
+    'ribru17/bamboo.nvim',
+    lazy = true, -- Don't load by default since vscode is the active theme
+  },
+  {
 		'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } 
 	},
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     event = { 'BufReadPost', 'BufNewFile' },
     build = ':TSUpdate',
-    main = 'nvim-treesitter',
     opts = {
       ensure_installed = {
         'bash',
         'c',
+        'python',
         'diff',
         'html',
         'lua',
@@ -208,8 +235,30 @@ return {
         'odin',
       },
       auto_install = true,
-      highlight = { enable = true, additional_vim_regex_highlighting = { 'ruby' } },
-      indent = { enable = true, disable = { 'ruby' } },
     },
+    config = function(_, opts)
+      require('nvim-treesitter').setup(opts)
+
+      local function start_highlighter(buf)
+        local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
+        if lang then
+          pcall(vim.treesitter.start, buf, lang)
+          pcall(function()
+            vim.bo[buf].indentexpr = 'v:lua.require"nvim-treesitter".indentexpr()'
+          end)
+        end
+      end
+
+      -- Start for current buffer (the one that triggered loading)
+      start_highlighter(vim.api.nvim_get_current_buf())
+
+      -- Start for all future buffers
+      vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('nvim-treesitter-highlight', { clear = true }),
+        callback = function(args)
+          start_highlighter(args.buf)
+        end,
+      })
+    end,
   },
 }

@@ -15,7 +15,11 @@ return {
     end
 
     local function client_supports_method(client, method, bufnr)
-      return client:supports_method(method, bufnr)
+      if vim.fn.has 'nvim-0.11' == 1 then
+        return client:supports_method(method, bufnr)
+      else
+        return client.supports_method(method, { bufnr = bufnr })
+      end
     end
 
     -- LspAttach autocommand
@@ -74,10 +78,10 @@ return {
       underline = { severity = vim.diagnostic.severity.ERROR },
       signs = vim.g.have_nerd_font and {
         text = {
-          [vim.diagnostic.severity.ERROR] = '󰅚',
-          [vim.diagnostic.severity.WARN] = '󰀪',
-          [vim.diagnostic.severity.INFO] = '󰋽',
-          [vim.diagnostic.severity.HINT] = '󰌶',
+          [vim.diagnostic.severity.ERROR] = '󰅚 ',
+          [vim.diagnostic.severity.WARN] = '󰀪 ',
+          [vim.diagnostic.severity.INFO] = '󰋽 ',
+          [vim.diagnostic.severity.HINT] = '󰌶 ',
         },
       } or {},
       virtual_text = {
@@ -110,6 +114,7 @@ return {
       html = {},
       cssls = {},
       rust_analyzer = {},
+      ols = {},
     }
 
     local ensure_installed = vim.tbl_keys(servers or {})
